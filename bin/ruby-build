@@ -586,6 +586,7 @@ build_package_standard_build() {
     if [ -z "$CC" ] && is_mac -ge 1010; then
       export CC=clang
     fi
+    use_freebsd_configure || true
     ${!PACKAGE_CONFIGURE:-./configure} --prefix="${!PACKAGE_PREFIX_PATH:-$PREFIX_PATH}" \
       $CONFIGURE_OPTS ${!PACKAGE_CONFIGURE_OPTS} "${!PACKAGE_CONFIGURE_OPTS_ARRAY}" || return 1
   ) >&4 2>&1
@@ -997,6 +998,18 @@ use_freebsd_pkg() {
         package_option ruby configure --with-libedit-dir="/usr/local"
       fi
     fi
+  fi
+}
+
+use_freebsd_configure() {
+  # check if FreeBSD
+  if [ "FreeBSD" = "$(uname -s)" ]; then
+    local file
+
+    # use config.* from Ports Collection
+    for file in ${PORTSDIR:-/usr/ports}/Templates/config.*; do
+      cmp -s "$file" ./tool/"${file##*/}" || cp -vp "$file" ./tool/
+    done
   fi
 }
 
